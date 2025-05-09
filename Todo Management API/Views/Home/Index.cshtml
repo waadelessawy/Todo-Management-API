@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ToDo List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="p-5">
@@ -10,27 +11,28 @@
     <div class="container">
         <h2 class="mb-4">ToDo Management</h2>
 
-        <!-- Alert Message -->
         <div id="message" class="alert d-none"></div>
 
-        <!-- Add ToDo Form -->
         <form id="addForm" class="mb-4">
             <div class="row g-2">
                 <div class="col-md-3">
                     <input type="text" id="title" class="form-control" placeholder="Title" required>
                 </div>
-                <div class="col-md-2">
-                    <select id="status" class="form-select">
-                        <option value="Pending">Pending</option>
-                        <option value="InProgress">InProgress</option>
-                        <option value="Completed">Completed</option>
-                    </select>
+                <div class="col-md-3">
+                    <input type="text" id="description" class="form-control" placeholder="Description">
                 </div>
+          @*       <div class="col-md-2">
+                    <select id="status" class="form-select">
+                        <option value="0">Pending</option>
+                        <option value="1">InProgress</option>
+                        <option value="2">Completed</option>
+                    </select>
+                </div> *@
                 <div class="col-md-2">
                     <select id="priority" class="form-select">
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
+                        <option value="1">Low</option>
+                        <option value="2">Medium</option>
+                        <option value="3">High</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -42,14 +44,47 @@
             </div>
         </form>
 
-        <!-- ToDo Table -->
+        <form id="editForm" class="mb-4 d-none">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <input type="text" id="editTitle" class="form-control" placeholder="Title" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="editDescription" class="form-control" placeholder="Description">
+                </div>
+                <div class="col-md-2">
+                    <select id="editStatus" class="form-select">
+                        <option value="1">Pending</option>
+                        <option value="2">InProgress</option>
+                        <option value="3">Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select id="editPriority" class="form-select">
+                        <option value="1">Low</option>
+                        <option value="2">Medium</option>
+                        <option value="3">High</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="date" id="editDueDate" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-warning w-100" type="submit">Update ToDo</button>
+                </div>
+            </div>
+        </form>
+
         <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>Title</th>
+                    <th>Description</th>
                     <th>Status</th>
                     <th>Priority</th>
                     <th>Due Date</th>
+                    <th>Created Date</th>
+                    <th>Last Modified Date</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -58,23 +93,25 @@
     </div>
 
     <script>
-        const API_BASE = "http://localhost:5000/api/todo"; // عدلي حسب عنوان الـ API
+        const API_BASE = "https://localhost:7123/api/ToDo";
         const tableBody = document.getElementById('todoTable');
         const messageDiv = document.getElementById('message');
+        let editingId = null;
 
-        // Load todos on page load
         document.addEventListener('DOMContentLoaded', fetchTodos);
 
-        // Add form submission
         document.getElementById('addForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const dto = {
                 title: document.getElementById('title').value,
-                status: document.getElementById('status').value,
-                priority: document.getElementById('priority').value,
+                description: document.getElementById('description').value,
+                //status: parseInt(document.getElementById('status').value),
+                priority: parseInt(document.getElementById('priority').value),
                 dueDate: document.getElementById('dueDate').value || null
+                
+
             };
-            const res = await fetch(API_BASE, {
+            const res = await fetch(`${API_BASE}/CreateToDoItem`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dto)
@@ -87,18 +124,46 @@
             }
         });
 
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dto = {
+                id: editingId,
+                title: document.getElementById('editTitle').value,
+                description: document.getElementById('editDescription').value,
+                status: parseInt(document.getElementById('editStatus').value),
+                priority: parseInt(document.getElementById('editPriority').value),
+                dueDate: document.getElementById('editDueDate').value || null
+                
+            };
+            const res = await fetch(`${API_BASE}/UpdateToDoItem`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            });
+            const result = await res.json();
+            showMessage(result.success ? "Updated successfully!" : "Failed to update.", result.success);
+            if (result.success) {
+                fetchTodos();
+                document.getElementById('editForm').classList.add('d-none');
+            }
+        });
+
         async function fetchTodos() {
-            const res = await fetch(API_BASE);
+            const res = await fetch(`${API_BASE}/GetAllToDos`);
             const result = await res.json();
             tableBody.innerHTML = '';
             if (result.success) {
                 result.data.forEach(item => {
-                    const row = `<tr>
+                    const row = `<tr data-id="${item.id}">
                         <td>${item.title}</td>
-                        <td>${item.status}</td>
-                        <td>${item.priority}</td>
+                        <td>${item.description}</td>
+                        <td>${mapStatus(item.status)}</td>
+                        <td>${mapPriority(item.priority)}</td>
                         <td>${item.dueDate ? item.dueDate.split('T')[0] : ''}</td>
+                        <td>${item.createdDate.split('T')[0]}</td>
+                        <td>${item.lastModifiedDate.split('T')[0]}</td>
                         <td>
+                            <button class="btn btn-warning btn-sm" onclick="openEditForm('${item.id}')">Edit</button>
                             <button class="btn btn-danger btn-sm" onclick="deleteTodo('${item.id}')">Delete</button>
                         </td>
                     </tr>`;
@@ -110,8 +175,8 @@
         }
 
         async function deleteTodo(id) {
-            const res = await fetch(`${API_BASE}/${id}`, {
-                method: 'DELETE'
+            const res = await fetch(`${API_BASE}/DeleteToDoItem?id=${id}`, {
+                method: 'Delete'
             });
             const result = await res.json();
             showMessage(result.success ? "Deleted successfully." : "Failed to delete.", result.success);
@@ -124,6 +189,61 @@
             messageDiv.classList.remove('d-none');
             setTimeout(() => messageDiv.classList.add('d-none'), 3000);
         }
+
+        function mapStatus(status) {
+            switch (status) {
+                case 1: return "Pending";
+                case 2: return "InProgress";
+                case 3: return "Completed";
+                default: return "Unknown";
+            }
+        }
+
+        function mapPriority(priority) {
+            switch (priority) {
+                case 1: return "Low";
+                case 2: return "Medium";
+                case 3: return "High";
+                default: return "Unknown";
+            }
+        }
+
+        function openEditForm(id) {
+            const row = document.querySelector(`#todoTable tr[data-id='${id}']`);
+            const title = row.cells[0].textContent;
+            const description = row.cells[1].textContent;
+            const status = row.cells[2].textContent;
+            const priority = row.cells[3].textContent;
+            const dueDate = row.cells[4].textContent;
+
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editStatus').value = mapStatusToNumber(status);
+            document.getElementById('editPriority').value = mapPriorityToNumber(priority);
+            document.getElementById('editDueDate').value = dueDate;
+
+            editingId = id;
+            document.getElementById('editForm').classList.remove('d-none');
+        }
+
+        function mapStatusToNumber(status) {
+            switch (status) {
+                case "Pending": return 1;
+                case "InProgress": return 2;
+                case "Completed": return 3;
+                default: return 1;
+            }
+        }
+
+        function mapPriorityToNumber(priority) {
+            switch (priority) {
+                case "Low": return 1;
+                case "Medium": return 2;
+                case "High": return 3;
+                default: return 1;
+            }
+        }
     </script>
+
 </body>
 </html>

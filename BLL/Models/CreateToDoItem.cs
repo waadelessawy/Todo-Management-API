@@ -9,9 +9,9 @@ namespace BLL.Models
 {
     public class CreateToDoItem
     {
-        public string Title { get; private set; }
-        public string? Description { get; private set; }
-        public PriorityLevel Priority { get; private set; }
-        public DateTime? DueDate { get; private set; }
+        public string Title { get; set; }
+        public string? Description { get; set; }
+        public PriorityLevel Priority { get; set; }
+        public DateTime? DueDate { get; set; }
     }
 }

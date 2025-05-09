@@ -12,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<ToDoContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ToDoConnectionString")));
+
 builder.Services.AddScoped<IToDoRepository,ToDoRepository>();
 builder.Services.AddScoped<IToDoService, ToDoService>();
 

@@ -9,11 +9,11 @@ namespace BLL.Models
 {
     public class UpdateToDoItem
     {
-        public Guid Id { get; private set; }
-        public string Title { get; private set; }
-        public string? Description { get; private set; }
-        public ToDoStatus Status { get; private set; }
-        public PriorityLevel Priority { get; private set; }
-        public DateTime? DueDate { get; private set; }
+        public Guid Id { get; set; }
+        public string Title { get; set; }
+        public string? Description { get; set; }
+        public ToDoStatus Status { get; set; }
+        public PriorityLevel Priority { get; set; }
+        public DateTime? DueDate { get; set; }
     }
 }
