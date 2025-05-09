@@ -1,5 +1,5 @@
 # ToDo Management API
-A simple RESTful API for managing to-do items. This API allows users to create, read, update, and delete tasks.
+A RESTful API for managing to-do items. This API allows users to create, read, update, and delete tasks.
 ## Description
 The ToDo Management API allows users to create, manage, and track to-do items.
 It provides basic CRUD (Create, Read, Update, Delete) operations to manage tasks with different priorities and statuses. 
