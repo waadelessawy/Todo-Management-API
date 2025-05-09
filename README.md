@@ -11,4 +11,4 @@ This project is designed to be a backend service that can be integrated into any
 - View all to-do items with their details (title, status, priority, due date).
 - API endpoints secured with JWT token authentication (if applicable).
 ## Installation
-You will not need to update your database, just run the project and it will update the database with the migrations.
+You just need to run the project to update the database with the migrations automatically.
